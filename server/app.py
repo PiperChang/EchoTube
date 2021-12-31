@@ -1,88 +1,37 @@
-from flask import Flask, request
+from flask import Flask, request, render_template, jsonify
+# jwt 모듈을 import하세요.
 import jwt
-import bcrypt
-from flask_restx import Resource, Api, Namespace, fields
-from auth import Auth
 
 app = Flask(__name__)
-api = Api(
-    app,
-    version='0.1',
-    title="JustKode's API Server",
-    description="JustKode's Todo API Server!",
-    terms_url="/",
-    contact="justkode@kakao.com",
-    license="MIT"
-)
+encryption_secret = "secret_elice"
+algorithm = "HS256"
+#인증해줄 사용자 data
+origin = {"name":"elice", "password":"elice@1234"}
 
-users = {}
+@app.route("/", methods=["GET","POST"])
+def jwt_route():
+    # 조건문을 이용해 API 요청을 구분하세요.
+    if request.method == 'POST' :
+        # POST 방식으로 전송된 username과 password를 변수에 저장하세요.
+        id = request.form['username']
+        pw = request.form['password']
+        # origin에 저장된 name, password와 비교하세요.
+        if origin['name'] == id and origin['password'] == pw :
+            # 정보가 일치하는 경우 사용자 변수를 만들기 위한 dictionary를 선언하세요.
+            data_to_encode = {'name':id,'password':pw }
+            # 인증이 완료되면 전송할 encode, decode 정보를 저장하세요.
+            encoded = jwt.encode(data_to_encode, encryption_secret, algorithm = algorithm).decode()
+            decoded = jwt.decode(encoded, encryption_secret, algorithm = [algorithm])
+            # 저장한 정보를 json 형태로 전송하세요.
+            data = {"encoded" : encoded, "decoded" : decoded}
+            
+            return jsonify(data)
+        # 정보가 일치하지 않는 경우 "User Not Found"를 화면에 출력하세요.
+        else : 
+            return jsonify("User Not Found")
+    else :
+        return render_template("index.html")
 
-Auth = Namespace(
-    name="Auth",
-    description="사용자 인증을 위한 API",
-)
 
-user_fields = Auth.model('User', {  # Model 객체 생성
-    'name': fields.String(description='a User Name', required=True, example="justkode")
-})
-
-user_fields_auth = Auth.inherit('User Auth', user_fields, {
-    'password': fields.String(description='Password', required=True, example="password")
-})
-
-jwt_fields = Auth.model('JWT', {
-    'Authorization': fields.String(description='Authorization which you must inclued in header', required=True, example="eyJ0e~~~~~~~~~")
-})
-
-@Auth.route('/register')
-class AuthRegister(Resource):
-    @Auth.expect(user_fields_auth)
-    @Auth.doc(responses={200: 'Success'})
-    @Auth.doc(responses={500: 'Register Failed'})
-    def post(self):
-        name = request.json['name']
-        password = request.json['password']
-        if name in users:
-            return {
-                "message": "Register Failed"
-            }, 500
-        else:
-            users[name] = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())  # 비밀번호 저장
-            return {
-                'Authorization': jwt.encode({'name': name}, "secret", algorithm="HS256")  # str으로 반환하여 return
-            }, 200
-
-@Auth.route('/login')
-class AuthLogin(Resource):
-    @Auth.expect(user_fields_auth)
-    @Auth.doc(responses={200: 'Success'})
-    @Auth.doc(responses={404: 'User Not Found'})
-    @Auth.doc(responses={500: 'Auth Failed'})
-    def post(self):
-        name = request.json['name']
-        password = request.json['password']
-        if name not in users:
-            return {
-                "message": "User Not Found"
-            }, 404
-        elif not bcrypt.checkpw(password.encode('utf-8'), users[name]):  # 비밀번호 일치 확인
-            return {
-                "message": "Auth Failed"
-            }, 500
-        else:
-            return {
-                'Authorization': jwt.encode({'name': name}, "secret", algorithm="HS256") # str으로 반환하여 return
-            }, 200
-
-@Auth.route('/get')
-class AuthGet(Resource):
-    @Auth.doc(responses={200: 'Success'})
-    @Auth.doc(responses={404: 'Login Failed'})
-    def get(self):
-        header = request.headers.get('Authorization')  # Authorization 헤더로 담음
-        if header == None:
-            return {"message": "Please Login"}, 404
-        data = jwt.decode(header, "secret", algorithms="HS256")
-        return data, 200
 if __name__ == "__main__":
-    app.run(debug=True, host='0.0.0.0', port=80)
+    app.run(debug = True)
