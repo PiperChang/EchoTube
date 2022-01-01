@@ -1,12 +1,12 @@
 from db_connect import db
 
 
-class Post(db.Model):
-    __tablename__ = 'post'
-    post_index = db.Column(db.Integer, primary_key=True)
-    video_id = db.Column(db.String(45), nullable=False)
+class Video(db.Model):
+    __tablename__ = 'videos'
+    id = db.Column(db.Integer, primary_key=True)
+    video_id_name = db.Column(db.String(45), nullable=False)
     title = db.Column(db.String(100), nullable=False)
-    published_date = db.Column(db.String(45), nullable=False)
+    published_at = db.Column(db.DateTime, nullable=False)
     category_id = db.Column(db.Integer, nullable=False)
     tags = db.Column(db.String(1000), nullable=False)
 
@@ -17,23 +17,23 @@ class Post(db.Model):
         self.category_id = category_id
         self.tags = tags
 
-class Post_Tag(db.Model):
-    __tablename__ = 'post_tag'
-    tag_index = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    post_index = db.Column(db.Integer,  db.ForeignKey('post.post_index'),nullable=False)
-    tag_id = db.Column(db.Integer, nullable=False)
+class Video_Tag(db.Model):
+    __tablename__ = 'video_tags'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    video_id = db.Column(db.Integer,  db.ForeignKey('videos.id'),nullable=False)
+    tag_id = db.Column(db.Integer, db.ForeignKey('tags.id'), nullable=False)
 
-    def __init__(self,tag_index , post_index,tag_id):
-        self.tag_index = tag_index
-        self.post_index = post_index
+    def __init__(self,id , post_id,tag_id):
+        self.id = id
+        self.post_id = post_id
         self.tag_id = tag_id
 
 
 class Tag(db.Model):
-    __tablename__ = 'tag'
-    tag_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    tag_name = db.Column(db.String(1000) ,nullable=False)
+    __tablename__ = 'tags'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(1000) ,nullable=False)
 
-    def __init__(self,tag_id , tag_name):
-        self.tag_id = tag_id
-        self.tag_name = tag_name 
+    def __init__(self,id , name):
+        self.id = id
+        self.name = name 

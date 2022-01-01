@@ -4,7 +4,8 @@
 </head>
 <body>
     <p id="example">AJAX</p>
-    <input type="text" id="tag1" placeholder="id">
+    <input type="text" id="tag" placeholder="태그">
+    <input type="text" id="category" placeholder="카테고리">
 
     <input type="button" id="create" value="create">
     <input type="button" id="update" value="update">
@@ -13,11 +14,13 @@
     
     <script>
         $('#create').click(function(){
-            var tag = $('#tag1').val();
+            var tag = $('#tag').val();
+            var category = $('#category').val();
            
 
             var postdata = {
-                'tag':tag
+                'tag':tag,
+                'category':category
             }
             $.ajax({
                 type: 'POST',
