@@ -5,6 +5,7 @@ import pymysql.cursors
 
 data = pd.read_csv("./_csv_youtube_trending_data.csv")
 
+publishedAt = data[['publishedAt']]
 data = data[['index','video_id','title','publishedAt','categoryId','tags']]
 
 
@@ -19,7 +20,7 @@ try:
     cursor = connection.cursor()
     
     for index, row in data.iterrows():
-        sql = "insert into post(post_index,video_id,title,published_date,category_id,tags) values(%s,%s, %s, %s,%s,%s)"
+        sql = "insert into videos(id,video_id_name,title,published_at,category_id,tags) values(%s,%s, %s, %s,%s,%s)"
         categoryId = int(row['categoryId'])
         cursor.execute(sql,(row['index'],row['video_id'],row['title'],row['publishedAt'],categoryId,row['tags']))
         connection.commit()
