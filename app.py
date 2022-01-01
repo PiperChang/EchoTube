@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify, render_template
 from models import Video_Tag, Tag, Video
 from db_connect import db
+from sqlalchemy import and_
 
 
 app = Flask(__name__)
@@ -27,35 +28,41 @@ def search_tag():
 
     tag = data['tag']
 
+    category = 0
+    if data['category'] != '':
+        category = int(data['category'])
+    
+
     #입력 받은 tag를 검색
     tag_obj = Tag.query.filter(Tag.name == tag).first()
     
-    #입력 받은 tag의 tag_id를 가지고 있는 Post_Tag 객체들을 리스트로 반환
-    post_tag_objs = Video_Tag.query.filter(Video_Tag.tag_id == tag_obj.id).all()
+    #입력 받은 tag의 tag_id를 가지고 있는 Video_Tag 객체들을 리스트로 반환
+    video_tag_objs = Video_Tag.query.filter(Video_Tag.tag_id == tag_obj.id).all()
     
-    for post_tag_obj in post_tag_objs:
-
-        #post_tag_obj의 post_index에 해당하는 유일한 Post 객체를 반환
-        post_info = Video.query.filter(post_tag_obj.video_id == Video.id ).first()
+    for video_tag_obj in video_tag_objs:
+        video_info = None
+        if category:
+            #video_tag_obj의 id에 해당하는 유일한 Video 객체를 반환
+            video_info = Video.query.filter(and_(Video.id == video_tag_obj.video_id, \
+                        Video.category_id == category)).first()
+        else:
+            video_info = Video.query.filter(Video.id == video_tag_obj.video_id).first()
+        
+        if video_info is None:
+            continue
 
         #프론트엔드에 전달할 데이터
         result.append(
-            {'index':post_info.id,
-             'title':post_info.title,
-             'video_id':post_info.video_id_name,
-             'published_date':post_info.published_at,
-             'tags':post_info.tags,
-             'catagory_id':post_info.category_id
+            {'index':video_info.id,
+             'title':video_info.title,
+             'video_id':video_info.video_id_name,
+             'published_date':video_info.published_at,
+             'tags':video_info.tags,
+             'catagory_id':video_info.category_id
             }
         )
 
     return jsonify(result)
-
-@app.route("/search-category", methods = ['POST'])
-def search_category():
-    data = request.get_json()
-    category = data['category']
-
 
 
 if __name__ == '__main__':
