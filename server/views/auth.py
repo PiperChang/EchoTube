@@ -1,74 +1,51 @@
+from flask import Flask, Blueprint, request, jsonify
+from flask_restx import Resource, Api, Namespace, fields
+from .models import users
+from db_connect import db
 import jwt
 import bcrypt
-from flask import request
-from flask_restx import Resource, Api, Namespace, fields
+from server.models.users import User
 
-users = {}
 
-Auth = Namespace(
-    name="Auth",
-    description="사용자 인증을 위한 API",
-)
+bcrypt = Bcrypt(app)
 
-user_fields = Auth.model('User', {  # Model 객체 생성
-    'name': fields.String(description='a User Name', required=True, example="justkode")
-})
+bp = Blueprint('auth', __name__, url_prefix="/auth")
 
-user_fields_auth = Auth.inherit('User Auth', user_fields, {
-    'password': fields.String(description='Password', required=True, example="password")
-})
-
-jwt_fields = Auth.model('JWT', {
-    'Authorization': fields.String(description='Authorization which you must inclued in header', required=True, example="eyJ0e~~~~~~~~~")
-})
-
-@Auth.route('/register')
-class AuthRegister(Resource):
-    @Auth.expect(user_fields_auth)
-    @Auth.doc(responses={200: 'Success'})
-    @Auth.doc(responses={500: 'Register Failed'})
-    def post(self):
-        name = request.json['name']
-        password = request.json['password']
-        if name in users:
+@bp.route('/register')
+class AuthRegister(Resource) :
+    def post(self) :
+        user_id = request.form['userID']
+        password = request.form['password']
+        user_name = request.form['user_name']
+        # db에 존재하는지 확인하는 쿼리
+        if User.query.filter(User.user_id == user_id).first() :
+            return {'message' : "Exist ID"},404
+        else :
+            password = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())  # 비밀번호 
+            new_user = User( user_id, password, user_name)
+            db.session.add(new_user)
+            db.session.commit()
+            # pw도 jwt에 포함필요?
             return {
-                "message": "Register Failed"
-            }, 500
-        else:
-            users[name] = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())  # 비밀번호 저장
-            return {
-                'Authorization': jwt.encode({'name': name}, "secret", algorithm="HS256")  # str으로 반환하여 return
+                'Authorization': jwt.encode({'user_id': user_id }, "secret", algorithm="HS256")  # str으로 반환하여 return
             }, 200
 
-@Auth.route('/login')
-class AuthLogin(Resource):
-    @Auth.expect(user_fields_auth)
-    @Auth.doc(responses={200: 'Success'})
-    @Auth.doc(responses={404: 'User Not Found'})
-    @Auth.doc(responses={500: 'Auth Failed'})
+@bp.route('/login')
+class AuthLogin(Resource) :
     def post(self):
-        name = request.json['name']
-        password = request.json['password']
-        if name not in users:
+        user_id = request.form['userID']
+        password = request.form['password']
+        user = User.query.filter(User.user_id == user_id).first()
+
+        if not user :
             return {
                 "message": "User Not Found"
             }, 404
-        elif not bcrypt.checkpw(password.encode('utf-8'), users[name]):  # 비밀번호 일치 확인
+        elif not bcrypt.checkpw(password.encode('utf-8') ,user.password) :
             return {
-                "message": "Auth Failed"
+                "message": "Wrong Password"
             }, 500
-        else:
+        else :
             return {
                 'Authorization': jwt.encode({'name': name}, "secret", algorithm="HS256") # str으로 반환하여 return
             }, 200
-
-@Auth.route('/get')
-class AuthGet(Resource):
-    @Auth.doc(responses={200: 'Success'})
-    @Auth.doc(responses={404: 'Login Failed'})
-    def get(self):
-        header = request.headers.get('Authorization')  # Authorization 헤더로 담음
-        if header == None:
-            return {"message": "Please Login"}, 404
-        data = jwt.decode(header, "secret", algorithms="HS256")
-        return data, 200

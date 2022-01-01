@@ -1,5 +1,7 @@
 from db_connect import db
 
+from db_connect import db
+
 class User(db.model):
   __tablename__ =  'user_tb'
   user_id = db.Column(db.Integer, primary_key = True, nullable = False)
@@ -11,4 +13,6 @@ class User(db.model):
       self.user_id = id
       self.user_pw = pw
       self.user_name = name
+
+
 
