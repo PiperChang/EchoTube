@@ -1,12 +1,11 @@
 import jwt
 import bcrypt
-from flask_restx import Resource, Api, Namespace
-from flask_bcrypt import Bcrypt
 
+from flask_restx import Resource, Api, Namespace
 from flask import request
 
 from ..db_connect import db
-from ..models.user import User
+from ..models.models import User
 
 Auth = Namespace(
     name="Auth",

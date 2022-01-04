@@ -6,6 +6,7 @@ from .db_connect import db
 
 # #local 에서 바로 import로 실행시 에러 발생. 일일이 상대 참조해야 함
 from .views.auth import Auth
+from .views.search import Search
 from . import config
 
 
@@ -20,6 +21,7 @@ db.init_app(app)
 Migrate().init_app(app,db)
 
 api.add_namespace(Auth,'/auth')
+api.add_namespace(Search,'/search')
 
 if __name__ == '__main__':
     app.run()
