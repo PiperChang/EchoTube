@@ -5,8 +5,7 @@ import pymysql.cursors
 data = pd.read_csv("./_csv_youtube_trending_data.csv")
 
 publishedAt = data[['publishedAt']]
-data = data[['index', 'video_id', 'title', 'publishedAt',
-             'categoryId', 'tags']]
+data = data[['channelId', 'view_count', 'likes', 'thumbnail_link']]
 
 
 connection = pymysql.connect(host='localhost',

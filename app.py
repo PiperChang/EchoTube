@@ -1,65 +1,64 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify
 from models import Video_Tag, Tag, Video
 from db_connect import db
 from sqlalchemy import and_
 
 
-app = Flask(__name__)
 
-#database 설정파일
-app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:0000@localhost:\
-    3306/mydb"
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app = Flask(__name__)
+app.config.from_envvar('APP_CONFIG_FILE')
+app.config['JSON_AS_ASCII'] = False
+
+
 db.init_app(app)
 
 result = []
 
+
 @app.route("/")
 def home():
-    return render_template('index.html', rows = result)
+    return ''
 
 
-@app.route("/search-tag", methods = ['POST'])
+@app.route("/search-tag", methods=['GET'])
 def search_tag():
 
-    result.clear() #검색 할때마다 result를 초기화
+    result.clear()  # 검색 할때마다 result를 초기화
 
-    data = request.get_json()
+    tag = request.args['tag']
+    category = request.args['category']
+    video = None  # 출력할 1개의 비디오 영상
 
-    tag = data['tag']
-
-    category = 0
-    if data['category'] != '':
-        category = int(data['category'])
-    
-
-    #입력 받은 tag를 검색
+    # 입력 받은 tag를 검색
     tag_obj = Tag.query.filter(Tag.name == tag).first()
-    
-    #입력 받은 tag의 tag_id를 가지고 있는 Video_Tag 객체들을 리스트로 반환
-    video_tag_objs = Video_Tag.query.filter(Video_Tag.tag_id == tag_obj.id).all()
-    
+
+    # 입력 받은 tag의 tag_id를 가지고 있는 Video_Tag 객체들을 리스트로 반환
+    video_tag_objs = Video_Tag.query.filter(
+                     Video_Tag.tag_id == tag_obj.id).all()
+
     for video_tag_obj in video_tag_objs:
-        video_info = None
         if category:
-            #video_tag_obj의 id에 해당하는 유일한 Video 객체를 반환
-            video_info = Video.query.filter(and_(Video.id == video_tag_obj.video_id, \
-                        Video.category_id == category)).first()
+            # video_tag_obj의 id와 category에 해당하는 유일한 Video 객체를 반환
+            video = Video.query.filter(and_(
+                    Video.id == video_tag_obj.video_id,
+                    Video.category_id == category)).first()
         else:
-            video_info = Video.query.filter(Video.id == video_tag_obj.video_id).first()
-        
-        if video_info is None:
+            # 카테고리를 선택 안 한 경우 video_tag_obj의 id에 해당하는 유일한 Video 객체를 반환
+            video = Video.query.filter(
+                    Video.id == video_tag_obj.video_id).first()
+
+        if video is None:
             continue
 
-        #프론트엔드에 전달할 데이터
+        # 프론트엔드에 전달할 데이터
         result.append(
-            {'index':video_info.id,
-             'title':video_info.title,
-             'video_id':video_info.video_id_name,
-             'published_date':video_info.published_at,
-             'tags':video_info.tags,
-             'catagory_id':video_info.category_id
-            }
+            {'index': video.id,
+             'title': video.title,
+             'video_id': video.video_code,
+             'published_date': video.published_at,
+             'tags': video.tags,
+             'catagory_id': video.category_id
+             }
         )
 
     return jsonify(result)
