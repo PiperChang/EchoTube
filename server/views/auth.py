@@ -1,32 +1,35 @@
 import jwt
-
-from flask import Blueprint, request
-from flask_restx import Resource
-
+import bcrypt
+from flask_restx import Resource, Api, Namespace
 from flask_bcrypt import Bcrypt
 
-from ..models.users import User
+from flask import request
 
-bcrypt = Bcrypt()
-bp = Blueprint('auth', __name__, url_prefix="/auth")
+from ..db_connect import db
+from ..models.user import User
+
+Auth = Namespace(
+    name="Auth",
+    description = "사용자 인증을 위한 API"
+)
 
 # 회원가입 
-@bp.route('/register')
+@Auth.route('/register')
 class AuthRegister(Resource) :
     # request 객체에 모든 값이 안들어왔을 경우, Key Error 발생 : Front 측에서 Validation ?
     def post(self) :
         email = request.form['email']
         password = request.form['password']
         name = request.form['name']
-        # request 객체에 모든 값이 들어오지 않았을 때
+        # request 양식 확인
         if None in [email,password,name] :
             return {'message' : "Key error, Please fill in all question"},404
-        # db에 존재하는지 확인하는 쿼리
+        # 기존 계정 확인
         if User.query.filter(User.email == email).first() :
-            return {'message' : "Exist ID"},404
+            return {'message' : "이미 가입된 이메일입니다."}, 404
         else :
             password = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())  # 비밀번호 
-            new_user = User( email , password, name)
+            new_user = User(email , password, name)
             db.session.add(new_user)
             db.session.commit()
             
@@ -35,21 +38,23 @@ class AuthRegister(Resource) :
             }, 200
 
 # 로그인
-@bp.route('/login')
+@Auth.route('/login')
 class AuthLogin(Resource) :
     def post(self):
         email = request.form['email']
         password = request.form['password']
-        if None in [email, password] :
-            return {'message' : "Key error, Please fill in all question"},404 
-        user = User.query.filter(User.email == email).first()
         
-        # Authentification 
+        #request 양식 확인
+        if None in [email, password] :
+            return {'message' : "가입을 위한 양식을 채워주세요.(프론트에서 구현)"}, 404 
+
+        user = User.query.filter(User.email == email).first()
         if user is None :
             return {
-                "message": "User Not Found"
+                "message": "존재하지 않는 계정입니다."
             }, 404
-        elif not bcrypt.checkpw(password.encode('utf-8') ,user.password) :
+
+        elif not bcrypt.checkpw(password.encode("utf-8") ,user.password.encode('utf-8')) :
             return {
                 "message": "Wrong Password"
             }, 500
