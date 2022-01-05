@@ -11,6 +11,7 @@ from . import config
 
 
 app = Flask(__name__) # app은 플라스크로 만든 객체이다.
+app.config['JSON_AS_ASCII'] = False
 api = Api(app,
     version ='0.1',
     title='애코튜브',
