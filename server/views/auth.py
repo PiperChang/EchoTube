@@ -1,7 +1,11 @@
+from typing_extensions import Required
+
+from flask.scaffold import F
+from flask.wrappers import Response
 import jwt
 import bcrypt
 
-from flask_restx import Resource, Api, Namespace
+from flask_restx import Resource, Api, Namespace, fields
 from flask import request
 
 from ..db_connect import db
@@ -12,9 +16,24 @@ Auth = Namespace(
     description = "사용자 인증을 위한 API"
 )
 
+
+register_fields = Auth.model('Register', {
+    'email' : fields.String(description='email', required=True, example='hi@exam.com'),
+    'name' : fields.String(description='name', required=True, example='KimChanghui'),
+    'password' : fields.String(description='password', required=True, example='password1!')
+})
+
+login_fields = Auth.model('Login', {
+    'email' : fields.String(description='email', required=True, example='hi@exam.com'),
+    'password' : fields.String(description='password', required=True, example='password1!')
+})
+
 # 회원가입 
 @Auth.route('/register')
 class AuthRegister(Resource) :
+    @Auth.expect(register_fields)
+    @Auth.doc(responses={200:'Success'})
+    @Auth.doc(responses={404:"이미 가입된 이메일입니다."})
     # request 객체에 모든 값이 안들어왔을 경우, Key Error 발생 : Front 측에서 Validation ?
     def post(self) :
         email = request.form['email']
@@ -39,13 +58,14 @@ class AuthRegister(Resource) :
 # 로그인
 @Auth.route('/login')
 class AuthLogin(Resource) :
+    @Auth.expect(login_fields)
+    @Auth.doc(responses={200:'Success'})
+    @Auth.doc(responses={404:"존재하지 않는 계정입니다."})
+    @Auth.doc(responses={500:"Wrong Password"})
     def post(self):
         email = request.form['email']
         password = request.form['password']
         
-        #request 양식 확인
-        if None in [email, password] :
-            return {'message' : "가입을 위한 양식을 채워주세요.(프론트에서 구현)"}, 404 
 
         user = User.query.filter(User.email == email).first()
         if user is None :

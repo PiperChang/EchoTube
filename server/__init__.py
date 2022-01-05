@@ -11,7 +11,12 @@ from . import config
 
 
 app = Flask(__name__) # app은 플라스크로 만든 객체이다.
-api = Api(app)
+api = Api(app,
+    version ='0.1',
+    title='애코튜브',
+    description="식스틴 팀의 애코튜브 API",
+    license="MIT"    
+)
 
 CORS(app)
 
@@ -19,6 +24,9 @@ CORS(app)
 app.config.from_object(config)
 db.init_app(app)
 Migrate().init_app(app,db)
+
+
+
 
 api.add_namespace(Auth,'/auth')
 api.add_namespace(Search,'/search')

@@ -1,5 +1,5 @@
-from flask_restx import Resource, Api, Namespace
-from flask import request
+from flask import request, jsonify
+from flask_restx import Resource, Api, Namespace, fields
 
 from ..db_connect import db
 from ..models.models import Tag, Video, Video_Tag
@@ -9,9 +9,25 @@ Search = Namespace(
   description = "Tag를 통한 트렌드 동영상 검색 API"
 )
 
+tag_fields = Search.model('Tag', {
+    'email' : fields.String(description='email', required=True, example='hi@exam.com'),
+    'name' : fields.String(description='name', required=True, example='KimChanghui'),
+    'password' : fields.String(description='password', required=True, example='password1!')
+})
+
+category_tag_fields = Search.model('Tag and Category', {
+    'tag' : fields.String(description='tag', required=True, example='백종원'),
+    'category' : fields.Integer(description='category', required=True, example='24')
+})
+
+
+# http://127.0.0.1:5000/search/search-tag?tag=행복&category=24
 @Search.route('/search-tag')
 class Search_tag(Resource) :
-  def post(self) :
+  @Search.expect(category_tag_fields)
+  @Search.doc(responses={200:'Success'})
+
+  def get(self) :
     result = []
 
     tag = request.args["tag"]
@@ -48,3 +64,4 @@ class Search_tag(Resource) :
             'views' : video.views
             }
         )
+        return jsonify(result), 200
