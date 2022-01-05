@@ -5,8 +5,8 @@ import pymysql.cursors
 data = pd.read_csv("./_csv_youtube_trending_data.csv")
 
 publishedAt = data[['publishedAt']]
-data = data[['index', 'video_Address', 'title', 'publishedAt', 'channelTitle'
-             'categoryId', 'tags', 'likes', 'view_count', 'thumbnail']]
+data = data[['index', 'video_id', 'title', 'publishedAt', 'channelTitle',
+             'categoryId', 'tags', 'likes', 'view_count', 'thumbnail_link']]
 
 
 connection = pymysql.connect(host='localhost',
@@ -23,10 +23,10 @@ try:
                 likes, views, thumbnail, channel)\
                values(%s,%s, %s, %s,%s,%s,%s,%s,%s,%s)"
         category_number = int(row['categoryId'])
-        cursor.execute(sql, (row['index'], row['video_Address'], row['title'],
+        cursor.execute(sql, (row['index'], row['video_id'], row['title'],
                              row['publishedAt'], category_number, row['tags'],
-                             row['likes'], row['view_count'], row['thumbnail'],
-                             row['channel']))
+                             row['likes'], row['view_count'], row['thumbnail_link'],
+                             row['channelTitle']))
         connection.commit()
         
 finally:

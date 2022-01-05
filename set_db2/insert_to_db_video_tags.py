@@ -36,7 +36,7 @@ try:
             # 이미 tag가 tag 테이블에 있다면 tag_id를 post_tag 테이블만 추가한다.
             else:
                 sql = "insert into video_tags(`video_id`, `tag_id`) values(%s, %s)"
-                cursor.execute(sql, (row_index, data[0]['tag_id']))
+                cursor.execute(sql, (row_index, data[0]['id']))
                 connection.commit()
 
 finally:
