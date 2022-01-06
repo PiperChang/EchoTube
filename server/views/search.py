@@ -15,7 +15,7 @@ Search = Namespace(
 
 category_tag_fields = Search.model('Tag and Category', {
     'data' : fields.String(description='data', required=True, example=
-    "{'tags':['행복','감사'],'categoryId':24}"
+    "{'tags':['행복','감사'],'categoryId':24,'page':1}"
     )
 })
 
@@ -25,21 +25,6 @@ category_fields = Search.model('Tag', {
     )
 })
 
-# 예시
-''' http://127.0.0.1:5000/search/tags?data={
-    "tags":['행복', '감사'],
-    "categoryId":24}
-'''
-
-''' http://127.0.0.1:5000/search/tags?data={
-    "tags":['행복', '감사'],
-    "categoryId":0}
-'''
-
-''' http://127.0.0.1:5000/search/category?data={
-    "categoryId":24,
-    "page":1}
-'''
 
 @Search.route('/tags')
 class Search_tag(Resource) :
@@ -48,7 +33,8 @@ class Search_tag(Resource) :
 
   def get(self) :
     """여러 개의 tag들에 해당하는 영상을 반환합니다."""
-    result = []
+    video_result = []
+    vedio_list = []
 
     data = request.args["data"]  # 요청 데이터
 
@@ -61,7 +47,12 @@ class Search_tag(Resource) :
 
     tag_list = data['tags']
     category_id = int(data['categoryId'])
+    page = int(data['page'])
 
+    if page == 0 : return jsonify('페이지 값은 1이상이어야 합니다.')
+
+    per_page = 9
+    
 
     for i in range(len(tag_list)):
         # 입력 받은 tag를 검색
@@ -77,8 +68,8 @@ class Search_tag(Resource) :
             
             if video is None:
                 continue
-                
-            result.append({
+     
+            vedio_list.append({
                 'title': video.title,
                 'channel' : video.channel,
                 'thumbnail' : video.thumbnail,
@@ -88,7 +79,36 @@ class Search_tag(Resource) :
                 'views' : video.views
                 }
             )
-    result = sorted(result, key=lambda x:x['views'], reverse=True)
+
+
+    max_page = math.ceil(len(vedio_list) / per_page)
+    
+    if page > max_page:
+        return jsonify('다음 페이지가 존재하지 않습니다.')
+
+    start_index = per_page * (page-1)
+    end_index = (page * per_page) - 1
+        
+    if page == max_page:
+            end_index = len(vedio_list) - 1
+        
+    for i in range(start_index, end_index+1):
+        #video = vedio_list[i]
+        video_result.append({
+            'title': vedio_list[i]['title'],
+            'channel' : vedio_list[i]['channel'],
+            'thumbnail' : vedio_list[i]['thumbnail'],
+            'videoAddress': vedio_list[i]['videoAddress'],
+            'categoryId': vedio_list[i]['categoryId'],
+            'likes' : vedio_list[i]['likes'],
+            'views' : vedio_list[i]['views']
+        })        
+
+    video_result = sorted(video_result, key=lambda x:x['views'], reverse=True)
+    result = {}
+    result['videos'] = video_result
+    result['max_page'] = max_page
+
     return jsonify(result)
 
 @Search.route('/category')
@@ -127,7 +147,7 @@ class Search_tag(Resource) :
             end_index = len(video) - 1
         
     for i in range(start_index, end_index+1):
-  
+        
         result.append({
             'title': video[i].title,
             'channel' : video[i].channel,
