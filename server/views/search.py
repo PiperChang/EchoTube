@@ -25,22 +25,6 @@ category_fields = Search.model('Tag', {
     )
 })
 
-# 예시
-''' http://127.0.0.1:5000/search/tags?data={
-    "tags":['행복', '감사'],
-    "categoryId":24}
-'''
-
-''' http://127.0.0.1:5000/search/tags?data={
-    "tags":['행복', '감사'],
-    "categoryId":0}
-'''
-
-''' http://127.0.0.1:5000/search/category?data={
-    "categoryId":24,
-    "page":1}
-'''
-
 @Search.route('/tags')
 class Search_tag(Resource) :
   @Search.expect(category_tag_fields)
