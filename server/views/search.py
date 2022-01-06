@@ -25,10 +25,7 @@ category_fields = Search.model('Tag', {
     )
 })
 
-<<<<<<< HEAD
 
-=======
->>>>>>> a305190290f7a88e360caaecba0e8afa94d08416
 @Search.route('/tags')
 class Search_tag(Resource) :
   @Search.expect(category_tag_fields)
