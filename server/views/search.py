@@ -1,19 +1,15 @@
-from flask import request, jsonify
-
-from flask_restx import Resource, Api, Namespace, fields
-
-<<<<<<< HEAD
-from db_connect import db
-from models.models import Tag, Video, Video_Tag
-
-from static.top20_tags import top20_tags
-=======
-from ..db_connect import db
-from ..models.models import Tag, Video, VideoTag
-from sqlalchemy import and_
 import json
 import math
->>>>>>> feature/videos
+
+from flask import request, jsonify
+from flask_restx import Resource, Api, Namespace, fields
+
+from db_connect import db
+from sqlalchemy import and_
+
+from models.models import Tag, Video, Video_Tag
+from static.top20_tags import top20_tags
+
 
 Search = Namespace(
     name="Search",
