@@ -11,8 +11,8 @@ data = data[['index', 'video_id', 'title', 'publishedAt', 'channelTitle',
 
 connection = pymysql.connect(host='localhost',
                              user='root',
-                             password='0000',
-                             db='mydb',
+                             password='sixteen',
+                             db='sixteen_local',
                              charset='utf8mb4',
                              cursorclass=pymysql.cursors.DictCursor)
 

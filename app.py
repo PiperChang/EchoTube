@@ -68,7 +68,7 @@ def search_tag():
         result = 0
     else:
         
-    video_list = video_list.paginate(page, per_page=9)  
+        video_list = video_list.paginate(page, per_page=9)  
 
         '''# 프론트엔드에 전달할 데이터
         result.append(

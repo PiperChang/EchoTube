@@ -3,8 +3,8 @@ import pymysql.cursors
 
 connection = pymysql.connect(host='localhost',
                              user='root',
-                             password='0000',
-                             db='mydb',
+                             password='sixteen',
+                             db='sixteen_local',
                              charset='utf8mb4',
                              cursorclass=pymysql.cursors.DictCursor)
 
@@ -20,13 +20,13 @@ try:
         row_tags_list = row_tags.split('|')
 
         for tag in row_tags_list:
-            sql = "select id from tag where name = %s"
+            sql = "select id from tags where name = %s"
             result = cursor.execute(sql, tag)
             data = cursor.fetchall()
 
             # tag 테이블에 없는 태그이면 tag 테이블에 추가해주고 그 tag_id를 post_tag에도 추가해준다.
             if result == 0:
-                sql = "insert into tag(`name`) values(%s)"
+                sql = "insert into tags(`name`) values(%s)"
                 cursor.execute(sql, tag)
                 connection.commit()
 
