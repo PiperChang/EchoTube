@@ -4,8 +4,8 @@ import bcrypt
 from flask_restx import Resource, Api, Namespace, fields
 from flask import request
 
-from db_connect import db
-from models.models import User
+from ..db_connect import db
+from ..models.models import User
 
 Auth = Namespace(
     name="Auth",
