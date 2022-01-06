@@ -1,15 +1,11 @@
-from typing_extensions import Required
-
-from flask.scaffold import F
-from flask.wrappers import Response
 import jwt
 import bcrypt
 
 from flask_restx import Resource, Api, Namespace, fields
 from flask import request
 
-from ..db_connect import db
-from ..models.models import User
+from db_connect import db
+from models.models import User
 
 Auth = Namespace(
     name="Auth",
@@ -65,8 +61,7 @@ class AuthLogin(Resource) :
     def post(self):
         email = request.form['email']
         password = request.form['password']
-        
-
+    
         user = User.query.filter(User.email == email).first()
         if user is None :
             return {

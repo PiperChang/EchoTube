@@ -1,4 +1,4 @@
-from ..db_connect import db
+from db_connect import db
 
 
 class User(db.Model):
@@ -58,4 +58,3 @@ class Tag(db.Model):
     def __init__(self, id, name):
         self.id = id
         self.name = name
-
