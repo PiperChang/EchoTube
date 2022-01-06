@@ -2,10 +2,10 @@ from flask import request, jsonify
 
 from flask_restx import Resource, Api, Namespace, fields
 
-from ..db_connect import db
-from ..models.models import Tag, Video, Video_Tag
+from db_connect import db
+from models.models import Tag, Video, Video_Tag
 
-from ..static.top20_tags import top20_tags
+from static.top20_tags import top20_tags
 
 Search = Namespace(
     name="Search",
