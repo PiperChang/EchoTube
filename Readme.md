@@ -9,3 +9,4 @@
 │      └─ templates/
 │            └─ index.html // 필요 x일듯?
 └── config.py : 환경변수, db 설정
+

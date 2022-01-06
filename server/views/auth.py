@@ -1,32 +1,49 @@
 import jwt
+import bcrypt
 
-from flask import Blueprint, request
-from flask_restx import Resource
+from flask_restx import Resource, Api, Namespace, fields
+from flask import request
 
-from flask_bcrypt import Bcrypt
+from ..db_connect import db
+from ..models.models import User
 
-from ..models.users import User
+Auth = Namespace(
+    name="Auth",
+    description = "사용자 인증을 위한 API"
+)
 
-bcrypt = Bcrypt()
-bp = Blueprint('auth', __name__, url_prefix="/auth")
+
+register_fields = Auth.model('Register', {
+    'email' : fields.String(description='email', required=True, example='hi@exam.com'),
+    'name' : fields.String(description='name', required=True, example='KimChanghui'),
+    'password' : fields.String(description='password', required=True, example='password1!')
+})
+
+login_fields = Auth.model('Login', {
+    'email' : fields.String(description='email', required=True, example='hi@exam.com'),
+    'password' : fields.String(description='password', required=True, example='password1!')
+})
 
 # 회원가입 
-@bp.route('/register')
+@Auth.route('/register')
 class AuthRegister(Resource) :
+    @Auth.expect(register_fields)
+    @Auth.doc(responses={200:'Success'})
+    @Auth.doc(responses={404:"이미 가입된 이메일입니다."})
     # request 객체에 모든 값이 안들어왔을 경우, Key Error 발생 : Front 측에서 Validation ?
     def post(self) :
         email = request.form['email']
         password = request.form['password']
         name = request.form['name']
-        # request 객체에 모든 값이 들어오지 않았을 때
+        # request 양식 확인
         if None in [email,password,name] :
             return {'message' : "Key error, Please fill in all question"},404
-        # db에 존재하는지 확인하는 쿼리
+        # 기존 계정 확인
         if User.query.filter(User.email == email).first() :
-            return {'message' : "Exist ID"},404
+            return {'message' : "이미 가입된 이메일입니다."}, 404
         else :
             password = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())  # 비밀번호 
-            new_user = User( email , password, name)
+            new_user = User(email , password, name)
             db.session.add(new_user)
             db.session.commit()
             
@@ -35,21 +52,23 @@ class AuthRegister(Resource) :
             }, 200
 
 # 로그인
-@bp.route('/login')
+@Auth.route('/login')
 class AuthLogin(Resource) :
+    @Auth.expect(login_fields)
+    @Auth.doc(responses={200:'Success'})
+    @Auth.doc(responses={404:"존재하지 않는 계정입니다."})
+    @Auth.doc(responses={500:"Wrong Password"})
     def post(self):
         email = request.form['email']
         password = request.form['password']
-        if None in [email, password] :
-            return {'message' : "Key error, Please fill in all question"},404 
+    
         user = User.query.filter(User.email == email).first()
-        
-        # Authentification 
         if user is None :
             return {
-                "message": "User Not Found"
+                "message": "존재하지 않는 계정입니다."
             }, 404
-        elif not bcrypt.checkpw(password.encode('utf-8') ,user.password) :
+
+        elif not bcrypt.checkpw(password.encode("utf-8") ,user.password.encode('utf-8')) :
             return {
                 "message": "Wrong Password"
             }, 500
