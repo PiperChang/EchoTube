@@ -6,10 +6,10 @@ BASE_DIR = os.path.dirname(__file__)
 
 db = {
     'user'     : 'root',
-    'password' : '0000',
+    'password' : 'sixteen',
     'host'     : 'localhost',
     'port'     : '3306',
-    'database' : 'mydb'
+    'database' : 'sixteen_local'
 }
 SQLALCHEMY_DATABASE_URI = f"mysql+mysqlconnector://{db['user']}:{db['password']}@{db['host']}:{db['port']}/{db['database']}?charset=utf8" 
 SQLALCHEMY_TRACK_MODIFICATIONS = False
