@@ -102,7 +102,7 @@ class Search_tag(Resource) :
 
     max_page = math.ceil(len(vedio_list) / per_page)
 
-    if len(video_result) == 0:
+    if len(vedio_list) == 0:
         max_page =  1
     
     if page > max_page:
@@ -115,7 +115,7 @@ class Search_tag(Resource) :
             end_index = len(vedio_list) - 1
         
     for i in range(start_index, end_index+1):
-        #video = vedio_list[i]
+        
         video_result.append({
             'title': vedio_list[i]['title'],
             'channel' : vedio_list[i]['channel'],
