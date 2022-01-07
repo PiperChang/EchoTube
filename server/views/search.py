@@ -128,8 +128,6 @@ class Search_tag(Resource) :
             'views' : vedio_list[i]['views']
         }) 
 
-    
-
     result = {}
     result['videos'] = video_result
     result['max_page'] = max_page
