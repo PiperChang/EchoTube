@@ -98,7 +98,9 @@ class Search_tag(Resource) :
                 'views' : video.views
                 }
             )
-
+            
+    if len(vedio_list) != 0:
+        vedio_list = sorted(vedio_list, key=lambda x:x['views'], reverse=True)
 
     max_page = math.ceil(len(vedio_list) / per_page)
 
@@ -125,9 +127,6 @@ class Search_tag(Resource) :
             'likes' : vedio_list[i]['likes'],
             'views' : vedio_list[i]['views']
         }) 
-
-    if len(video_result) != 0:
-        video_result = sorted(video_result, key=lambda x:x['views'], reverse=True)
 
     result = {}
     result['videos'] = video_result
