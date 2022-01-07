@@ -26,7 +26,6 @@ app.config.from_object(config)
 db.init_app(app)
 Migrate().init_app(app,db)
 
-
 api.add_namespace(Auth,'/auth')
 api.add_namespace(Search,'/search')
 

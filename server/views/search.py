@@ -22,7 +22,7 @@ category_fields = Search.model('Category', {
 
 category_tag_fields = Search.model('Tag and Category', {
     'data' : fields.String(description='data', required=True, example=
-    "{'tags':['행복','감사'],'categoryId':24,'page':1}"
+    "{'tags':'행복, 감사','categoryId':24,'page':1}"
     )
 })
 
@@ -54,14 +54,15 @@ class Search_tag(Resource) :
 
     data = request.args["data"]  # 요청 데이터
 
-    #data = eval(data) # data를 문자열에서 dict로 변환
-
     try:
-        data = eval(data)
+        data = eval(data)  # data를 문자열에서 dict로 변환
     except:
         return jsonify('태그와 카테고리를 모두 입력하세요.')
 
     tag_list = data['tags']
+    tag_list = tag_list.split(',')
+    tag_list = [tag.strip() for tag in tag_list]
+
     category_id = int(data['categoryId'])
     page = int(data['page'])
 
@@ -69,10 +70,12 @@ class Search_tag(Resource) :
 
     per_page = 9
     
-
     for i in range(len(tag_list)):
         # 입력 받은 tag를 검색
         tag = Tag.query.filter(Tag.name == tag_list[i]).first()
+
+        if tag is None:
+            continue
 
         # 입력 받은 tag의 tag_id를 가지고 있는 VideoTag 객체들을 리스트로 반환
         video_tags = VideoTag.query.filter(
@@ -80,7 +83,7 @@ class Search_tag(Resource) :
 
         for video_tag in video_tags:
             video = Video.query.filter(Video.id == video_tag.video_id)
-            video = video.first() if category_id is 0 else video.filter(Video.category_number==category_id).first()
+            video = video.first() if category_id == 0 else video.filter(Video.category_number==category_id).first()
             
             if video is None:
                 continue
@@ -98,6 +101,9 @@ class Search_tag(Resource) :
 
 
     max_page = math.ceil(len(vedio_list) / per_page)
+
+    if len(video_result) == 0:
+        max_page =  1
     
     if page > max_page:
         return jsonify('다음 페이지가 존재하지 않습니다.')
@@ -118,9 +124,11 @@ class Search_tag(Resource) :
             'categoryId': vedio_list[i]['categoryId'],
             'likes' : vedio_list[i]['likes'],
             'views' : vedio_list[i]['views']
-        })        
+        }) 
 
-    video_result = sorted(video_result, key=lambda x:x['views'], reverse=True)
+    if len(video_result) != 0:
+        video_result = sorted(video_result, key=lambda x:x['views'], reverse=True)
+
     result = {}
     result['videos'] = video_result
     result['max_page'] = max_page
@@ -134,8 +142,7 @@ class Search_tag(Resource) :
 
   def get(self) :
     """카테고리에 해당하는 영상을 9개 반환합니다."""
-    result = []
-
+    video_result = []
     data = request.args["data"]  # 요청 데이터
 
     try:
@@ -147,11 +154,18 @@ class Search_tag(Resource) :
     page = int(data['page'])
     if page == 0 : return jsonify('페이지 값은 1이상이어야 합니다.')
 
+    # 전체 카테고리일 떄
+    if category_id == 0:
+        video = Video.query.all()
+    else:
     # 입력 받은 category_id를 가지고 있는 Video 객체들을 리스트로 반환
-    video = Video.query.filter(Video.category_number == category_id).all()
+        video = Video.query.filter(Video.category_number == category_id).all()
 
     per_page = 9
     max_page = math.ceil(len(video) / per_page)
+
+    if len(video) == 0:
+        max_page = 1
 
     if page > max_page:
         return jsonify('다음 페이지가 존재하지 않습니다.')
@@ -164,7 +178,7 @@ class Search_tag(Resource) :
         
     for i in range(start_index, end_index+1):
         
-        result.append({
+        video_result.append({
             'title': video[i].title,
             'channel' : video[i].channel,
             'thumbnail' : video[i].thumbnail,
@@ -174,5 +188,11 @@ class Search_tag(Resource) :
             'views' : video[i].views
         })
 
-    result = sorted(result, key=lambda x:x['views'], reverse=True)
+    if len(video_result) != 0:
+        video_result = sorted(video_result, key=lambda x:x['views'], reverse=True)
+
+    result = {}
+    result['videos'] = video_result
+    result['max_page'] = max_page
+
     return jsonify(result)

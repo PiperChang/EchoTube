@@ -74,5 +74,20 @@ class AuthLogin(Resource) :
             }, 500
         else :
             return {
-                'token': jwt.encode({'email': email }, "secret", algorithm="HS256") # str으로 반환하여 return
+                'token': jwt.encode({
+                    'email': User.email,
+                    "name" : User.name
+                 }, "secret", algorithm="HS256"),
             }, 200
+
+@Auth.route('/get')
+class AuthGet(Resource) :
+    @Auth.doc(responses={200:'Success'})
+    @Auth.doc(responses={404:'Login Failed'})
+    def get(self) :
+        header = request.headers.get('Authorization')
+        if header == None:
+            return {"message": "Please Login"} , 404
+        data = jwt.decode(header,"secret", algorithms="HS256")
+        # secret, algorithm은 보안 문제로 별도의 모듈로 이용하여야 한다.
+        return data, 200
