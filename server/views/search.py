@@ -7,7 +7,7 @@ from flask_restx import Resource, Api, Namespace, fields
 from db_connect import db
 from sqlalchemy import and_
 
-from models.models import Tag, Video, Video_Tag
+from models.models import Tag, Video, VideoTag
 from static.top20_tags import top20_tags
 
 
