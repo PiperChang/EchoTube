@@ -1,7 +1,3 @@
-from typing_extensions import Required
-
-from flask.scaffold import F
-from flask.wrappers import Response
 import jwt
 import bcrypt
 

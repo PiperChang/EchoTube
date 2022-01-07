@@ -3,6 +3,7 @@ from flask_restx import Resource, Api, Namespace, fields
 
 from ..db_connect import db
 from ..models.models import Tag, Video, Video_Tag
+from sqlalchemy import and_
 
 Search = Namespace(
   name="Search",
