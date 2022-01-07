@@ -4,8 +4,8 @@ import bcrypt
 from flask_restx import Resource, Api, Namespace, fields
 from flask import request
 
-from ..db_connect import db
-from ..models.models import User
+from db_connect import db
+from models.models import User
 
 Auth = Namespace(
     name="Auth",
@@ -61,8 +61,7 @@ class AuthLogin(Resource) :
     def post(self):
         email = request.form['email']
         password = request.form['password']
-        
-
+    
         user = User.query.filter(User.email == email).first()
         if user is None :
             return {
@@ -75,5 +74,20 @@ class AuthLogin(Resource) :
             }, 500
         else :
             return {
-                'token': jwt.encode({'email': email }, "secret", algorithm="HS256") # str으로 반환하여 return
+                'token': jwt.encode({
+                    'email': User.email,
+                    "name" : User.name
+                 }, "secret", algorithm="HS256"),
             }, 200
+
+@Auth.route('/get')
+class AuthGet(Resource) :
+    @Auth.doc(responses={200:'Success'})
+    @Auth.doc(responses={404:'Login Failed'})
+    def get(self) :
+        header = request.headers.get('Authorization')
+        if header == None:
+            return {"message": "Please Login"} , 404
+        data = jwt.decode(header,"secret", algorithms="HS256")
+        # secret, algorithm은 보안 문제로 별도의 모듈로 이용하여야 한다.
+        return data, 200

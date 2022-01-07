@@ -1,4 +1,4 @@
-from ..db_connect import db
+from db_connect import db
 
 
 class User(db.Model):
@@ -25,7 +25,7 @@ class Video(db.Model):
   likes = db.Column(db.Integer, nullable=False)
   views = db.Column(db.Integer, nullable=False)
   channel = db.Column(db.String(100), nullable=False)
-  thumbnail = db.Column(db.String(1000), nullable=False)
+  thumbnail = db.Column(db.String(1000), nullable=True)
 
   def __init__(self, id, title,video_address, published_at, category_number, tags, views, likes,  channel,thumbnail):
         self.id = id
@@ -39,7 +39,7 @@ class Video(db.Model):
         self.channel = channel
         self.thumbnail = thumbnail
 
-class Video_Tag(db.Model):
+class VideoTag(db.Model):
     __tablename__ = 'video_tags'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     video_id = db.Column(db.Integer,  db.ForeignKey('videos.id'), nullable=False)
@@ -58,4 +58,3 @@ class Tag(db.Model):
     def __init__(self, id, name):
         self.id = id
         self.name = name
-
